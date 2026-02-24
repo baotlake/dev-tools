@@ -37,13 +37,14 @@ class FSTools {
                 }
             )
         })
-        console.log('dir: ', dirEntry)
+        console.log(`dir: ${dirEntry.fullPath}`, dirEntry)
         this.currentDir = dirEntry
         return dirEntry
     }
 
-    async ls() {
+    async ls(path) {
         if (!this.fs) await this.init()
+        if (path) await this.cd(path)
         const dirEntry = this.currentDir || this.fs.root
         const dirReader = dirEntry.createReader()
         const entries = await new Promise((resolve, reject) => {
@@ -57,7 +58,11 @@ class FSTools {
                 }
             )
         })
+        entries.forEach((fe) => {
+            console.log(`${fe.isFile ? '-' : 'd'}  ${fe.fullPath}`)
+        })
         console.log('entries: ', entries)
+        return entries
     }
 
     async find(name = "*") {
@@ -96,13 +101,15 @@ class FSTools {
         return file
     }
 
-    async download(fileName = 'download_file.mp4') {
+    async download(fileName) {
         const file = this.currentFile
+        const name = fileName || file.name || 'download'
+
         if (file) {
             const url = URL.createObjectURL(file)
             const a = document.createElement('a')
             a.href = url
-            a.download = fileName
+            a.download = name
             a.click()
         }
     }
@@ -147,7 +154,7 @@ class FSTools {
         const dirEntry = this.currentDir || this.fs.root
         fileName = fileName || file.name
         const fileEntry = await new Promise((resolve, reject) => {
-            dirEntry.getFile(fileName, {create: true}, resolve, console.error)
+            dirEntry.getFile(fileName, { create: true }, resolve, console.error)
         })
         const fileWriter = await new Promise((resolve, reject) => {
             fileEntry.createWriter(resolve, console.error)
@@ -164,7 +171,7 @@ class FSTools {
         if (!this.fs) await this.init()
         const currentDir = this.currentDir || this.fs.root
         const dirEntry = await new Promise((resolve, reject) => {
-            currentDir.getDirectory(name, {create: true}, resolve, console.error)
+            currentDir.getDirectory(name, { create: true }, resolve, console.error)
         })
         console.log('dir: ', dirEntry)
     }
@@ -181,13 +188,12 @@ class FSTools {
         }
 
         const dirEntry = this.currentDir || this.fs.root
-        const dirMetadata = await new Promise((resolve)=> {
+        const dirMetadata = await new Promise((resolve) => {
             dirEntry.getMetadata(resolve)
         })
 
         console.log('dir metadata: ', dirMetadata)
     }
-
 }
 
 const fs = new FSTools()

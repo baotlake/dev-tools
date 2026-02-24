@@ -4,9 +4,9 @@
 from format import concat
 import json
 
-name = 'text'
+name = 'sidebar_des'
 scheme_path = 'scheme_' + name + '.json'
-contents_path = 'contents' + name + '.json'
+contents_path = 'contents_' + name + '.json'
 output_path = 'output_' + name + '.json'
 
 

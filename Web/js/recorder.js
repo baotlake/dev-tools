@@ -23,7 +23,7 @@ async function record(second = 3) {
     const chunks = []
     const stream = window._js_stream
     const options = { mimeType: 'video/webm; codecs=vp9' }
-    // const options = { 
+    // const options = {
     //     mimeType: 'video/webm; codecs=h264',
     //     videoBitsPerSecond: 8000000,
     // }

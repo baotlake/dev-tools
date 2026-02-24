@@ -7,6 +7,7 @@
 
 import sys
 import json
+# from googletrans.models import Translated
 from googletrans import Translator
 
 # default code list
@@ -30,7 +31,6 @@ translator = Translator()
 
 json_path = sys.argv[1]
 output_path = './translate_json_output.json'
-
 try:
     output_path = sys.argv[2]
 except:

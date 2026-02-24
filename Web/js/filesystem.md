@@ -2,17 +2,31 @@
 
 [MDN FileSystem Docs](https://developer.mozilla.org/en-US/docs/Web/API/FileSystem)
 
-### 用法
+### 用法 Usage
+
+1. 复制 `filesystem.js` 内容粘贴到控制台
+
+2. 运行命令
 
 ```javascript
-initFS()
+    // 切换目录 (change directory)
+    fs.cd`/videos` // or fs.cd('/videos')
 
-lsDir()
+    // ls
+    fs.ls()
 
-changeDir('books')
+    // 下载文件（download file）
+    fs.find`video.mp4`
+    fs.download`video-download.mp4`
 
-findFile('example.txt')
+    // 保存文件 (save file)
+    fs.save`a.txt`      
+    // save 'a.txt' in the current directory
 
-downloadFind()
+    // 创建目录 (make directories)
+    fs.mkdir`videos`
+
+    // rm -rf
+    fs.rmAll()
 
 ```

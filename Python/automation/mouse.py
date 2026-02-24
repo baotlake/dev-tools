@@ -4,15 +4,18 @@ from pynput import keyboard
 from pynput.mouse import Button, Controller
 
 
+def multiple_click(mouse, btn=Button.left, times=1):
+    print('click x', times)
+    for i in range(times):
+        mouse.click()
+        
+
 def on_press(key):
     try:
         print(key)
         if key == keyboard.Key.cmd:
-            print('click x3')
             mouse = Controller()
-            mouse.click(Button.left)
-            mouse.click(Button.left)
-            mouse.click(Button.left)
+            multiple_click(mouse, times=3)
     except:
         print('')
 

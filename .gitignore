@@ -6,8 +6,12 @@ Vim
 #
 .DS_Store
 .idea
-
+.ipynb_checkpoints
+.vscode
+.*
 AppStoreConnect/data/*
 playground
 
 docker/home/*
+
+_*

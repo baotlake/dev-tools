@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        const t1 = Date.now()
+
+        let oldV = 0
+
+
+        setInterval(() => {
+            const t = Date.now()
+            const v = (t - t1) / 500
+
+            const sign = v - oldV < 1.3 ? '✅' : '❌ 🛑'
+            oldV = v
+            console.log(sign)
+        }, 500)
+    </script>
+
+    <!-- <video src="/static/flower.mp4" loop autoplay muted></video> -->
+
+    <script>
+
+        // const video = document.querySelector('video')
+        // const stream = video.captureStream()
+        // console.log('stream', stream)
+        // window.stream = stream
+
+        // navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+        //     console.log('stream', stream)
+        //     window.stream = stream
+        // })
+
+        function applyPatch(t1 = 6, t2 = 1000 * 3) {
+            console.log('applyPatch', t1, t2)
+            const ctx = new AudioContext()
+
+            const gainNode = new GainNode(ctx)
+            gainNode.connect(ctx.destination)
+            gainNode.gain.setValueAtTime(0, ctx.currentTime)
+
+            const oscillatorNode = new OscillatorNode(ctx, {
+                frequency: 440,
+            })
+
+            oscillatorNode.connect(gainNode)
+            oscillatorNode.start()
+
+            const beep = () => {
+                console.log('beep')
+                const d = t1 / 1000 / 3
+                gainNode.gain.exponentialRampToValueAtTime(0.6, ctx.currentTime + d)
+
+                setTimeout(() => {
+                    gainNode.gain.exponentialRampToValueAtTime(
+                        0.00001,
+                        ctx.currentTime + d
+                    )
+                }, t1)
+            }
+
+            beep()
+            const id = window.setInterval(() => {
+                beep()
+            }, t2)
+
+            return () => {
+                clearInterval(id)
+                oscillatorNode.stop()
+                gainNode.disconnect(ctx.destination)
+                ctx.close()
+            }
+        }
+
+        let removePatch
+
+        window.onclick = () => {
+            console.log('onclick')
+            if (removePatch) removePatch()
+            removePatch = applyPatch()
+        }
+
+
+    </script>
+</body>
+
+</html>

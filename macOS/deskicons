@@ -1,0 +1,14 @@
+#! /bin/zsh
+
+visible=`defaults read com.apple.finder CreateDesktop`
+
+if [ $visible = "true" ]
+then
+    defaults write com.apple.finder CreateDesktop 'false'
+else
+    defaults write com.apple.finder CreateDesktop 'true'
+fi
+
+killall Finder
+
+osascript -e 'tell application "Terminal" to close first window' & exit
